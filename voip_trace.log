@@ -44,3 +44,12 @@
 2025-09-10 00:35:01,169 - INFO - Inactive flow detected: 10.26.17.118 <-> 142.250.82.215. Duration: 0.02s
 2025-09-10 00:35:27,208 - INFO - Inactive flow detected: 10.26.17.118 <-> 142.250.82.215. Duration: 0.02s
 2025-09-10 00:35:52,219 - INFO - Inactive flow detected: 10.26.17.118 <-> 142.250.82.215. Duration: 0.03s
+2025-09-10 00:36:17,239 - INFO - Inactive flow detected: 10.26.17.118 <-> 142.250.82.215. Duration: 0.02s
+2025-09-10 00:36:42,277 - INFO - Inactive flow detected: 10.26.17.118 <-> 142.250.82.215. Duration: 0.02s
+2025-09-10 00:37:08,298 - INFO - Inactive flow detected: 10.26.17.118 <-> 142.250.82.215. Duration: 0.02s
+2025-09-10 00:37:45,324 - INFO - Inactive flow detected: 10.26.17.118 <-> 142.250.82.215. Duration: 304.72s
+2025-09-10 00:37:45,325 - INFO - Inactive flow detected: 10.26.17.118 <-> 142.250.82.215. Duration: 12.18s
+2025-09-10 00:37:45,326 - INFO - Inactive flow detected: 10.26.17.118 <-> 142.250.82.215. Duration: 0.13s
+2025-09-10 00:37:46,327 - INFO - Inactive flow detected: 10.26.17.118 <-> 142.250.82.215. Duration: 0.13s
+2025-09-10 00:38:00,351 - INFO - Inactive flow detected: 10.26.17.118 <-> 142.250.82.215. Duration: 14.09s
+2025-09-10 00:38:25,389 - INFO - Inactive flow detected: 10.26.17.118 <-> 142.250.82.215. Duration: 0.02s
