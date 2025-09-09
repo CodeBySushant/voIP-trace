@@ -1,0 +1,5 @@
+./voip_trace.log
+./past-trials
+./call_data.jsonl
+./.venv
+./__pycache__

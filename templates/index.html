@@ -106,13 +106,13 @@ socket.on('new_flow', function(data) {
     
 
     // --- Coordinates (if available) ---
-    const sourceHasCoords = data.source_loc && data.source_loc.lat && data.source_loc.lon;
+    const sourceHasCoords = true;
     const destHasCoords   = data.dest_loc && data.dest_loc.lat && data.dest_loc.lon;
 
     let line = null, sourceMarker = null, destMarker = null;
 
     if (sourceHasCoords && destHasCoords) {
-        const sourceCoords = [parseFloat(data.source_loc.lat), parseFloat(data.source_loc.lon)];
+        const sourceCoords = [23.2158, 77.4096];
         console.log(sourceCoords);
         const destCoords   = [parseFloat(data.dest_loc.lat), parseFloat(data.dest_loc.lon)];
         console.log(destCoords);

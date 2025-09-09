@@ -9,7 +9,6 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 from scapy.all import get_if_list
-from scapy.arch.windows import get_windows_if_list
 
 # Import the core sniffing and analysis logic
 import core
@@ -62,7 +61,7 @@ def render_ui():
         # We now read from core.active_calls
         for flow, meta in core.active_calls.items():
             ip1, ip2 = flow[0][0], flow[1][0]
-            loc1 = core.get_geoip_location(ip1)
+            loc1 = "Bhopal, India"
             loc2 = core.get_geoip_location(ip2)
             location_str = f"[green]{loc1}[/green] <-> [yellow]{loc2}[/yellow]"
             flow_str = f"{ip1}:{flow[0][1]} <-> {ip2}:{flow[1][1]}"
@@ -87,7 +86,7 @@ def render_ui():
 
 # --- Main UI Thread ---
 def main():
-    ifaces = get_windows_if_list()
+    ifaces = get_if_list()
     print("[*] Available interfaces:")
     for i, iface in enumerate(ifaces):
         print(f"  {i}: {iface}")

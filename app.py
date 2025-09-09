@@ -30,11 +30,11 @@ def handle_new_flow(data):
     source_loc_data = meta.get('source_loc_data')
     dest_loc_data = meta.get('dest_loc_data')
 
-    source_loc = {'lat': None, 'lon': None, 'city': 'Private/LAN', 'country': ''}
+    source_loc = {'lat': None, 'lon': None, 'city': 'Bhopal', 'country': 'India'}
     if source_loc_data:
         source_loc = {
             'city': source_loc_data.city.name, 'country': source_loc_data.country.iso_code, 
-            'lat': source_loc_data.location.latitude, 'lon': source_loc_data.location.longitude
+            'lat': 23.21, 'lon': 77.40
         }
 
     dest_loc = {'lat': None, 'lon': None, 'city': 'Private/LAN', 'country': ''}
