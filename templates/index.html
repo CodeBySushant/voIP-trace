@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VoIP Trace Dashboard</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Socket.IO -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+  
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    #map { height: 450px; width: 100%; }
+    .table-cell { padding: 0.75rem; vertical-align: middle; }
+    .leaflet-container { background: #1a202c; } /* dark background */
+  </style>
+</head>
+<body class="bg-gray-900 text-gray-200">
+
+  <div class="container mx-auto p-4 lg:p-8">
+    <header class="text-center mb-8">
+      <h1 class="text-4xl font-bold text-cyan-400">VoIP Metadata Intelligence Dashboard</h1>
+      <p class="text-gray-400 mt-2">Real-time monitoring of VoIP communication flows.</p>
+    </header>
+
+    <!-- Map Section -->
+    <div class="bg-gray-800 rounded-lg shadow-xl p-4 mb-8">
+      <h2 class="text-xl font-semibold mb-4 text-gray-300">Live Call Map</h2>
+      <div id="map" class="rounded-md"></div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Active Flows Section -->
+      <div class="lg:col-span-2 bg-gray-800 rounded-lg shadow-xl p-6">
+        <h2 class="text-xl font-semibold mb-4 text-gray-300">Active Flows</h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left">
+            <thead class="border-b-2 border-gray-600">
+              <tr>
+                <th class="table-cell">Endpoints</th>
+                <th class="table-cell">Protocol</th>
+                <th class="table-cell">Location</th>
+                <th class="table-cell">Age (s)</th>
+              </tr>
+            </thead>
+            <tbody id="flows-table-body">
+              <!-- Rows inserted dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Alerts Section -->
+      <div class="bg-gray-800 rounded-lg shadow-xl p-6">
+        <h2 class="text-xl font-semibold mb-4 text-red-400">Alerts & Events</h2>
+        <ul id="alerts-list" class="space-y-3 h-96 overflow-y-auto pr-2">
+          <!-- Alerts inserted dynamically -->
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Leaflet Initialization ---
+    const map = L.map('map').setView([30, 20], 2);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19
+    }).addTo(map);
+
+    const flowsOnMap = new Map();
+
+    // --- WebSocket Connection ---
+    const socket = io(); // expects your backend running socket.io
+
+    socket.on('connect', () => {
+      console.log('Connected to server!');
+    });
+
+    const flowsTableBody = document.getElementById('flows-table-body');
+    const alertsList = document.getElementById('alerts-list');
+
+    // --- Handle New Flow ---
+socket.on('new_flow', function(data) {
+    const row = document.createElement('tr');
+    row.id = `flow-${data.safe_flow_id}`;
+    row.className = 'border-b border-gray-700 hover:bg-gray-700 transition-colors duration-200';
+    
+    row.innerHTML = `
+        <td class="table-cell font-mono text-sm">${data.source_ip}:${data.source_port}<br>${data.dest_ip}:${data.dest_port}</td>
+        <td class="table-cell font-semibold proto-cell">${data.proto}</td>
+        <td class="table-cell text-sm">${data.source_loc.city || 'N/A'}, ${data.source_loc.country || ''}<br>${data.dest_loc.city || 'N/A'}, ${data.dest_loc.country || ''}</td>
+        <td class="table-cell age-cell">0</td>
+    `;
+    flowsTableBody.prepend(row);
+    row.dataset.startTime = data.start_time;
+
+    
+
+    // --- Coordinates (if available) ---
+    const sourceHasCoords = data.source_loc && data.source_loc.lat && data.source_loc.lon;
+    const destHasCoords   = data.dest_loc && data.dest_loc.lat && data.dest_loc.lon;
+
+    let line = null, sourceMarker = null, destMarker = null;
+
+    if (sourceHasCoords && destHasCoords) {
+        const sourceCoords = [parseFloat(data.source_loc.lat), parseFloat(data.source_loc.lon)];
+        console.log(sourceCoords);
+        const destCoords   = [parseFloat(data.dest_loc.lat), parseFloat(data.dest_loc.lon)];
+        console.log(destCoords);
+
+        // Draw line
+        line = L.polyline([sourceCoords, destCoords], {
+            color: '#06b6d4',
+            weight: 2,
+            opacity: 0.8
+        }).addTo(map);
+
+        // Source marker
+        sourceMarker = L.marker(sourceCoords).addTo(map)
+            .bindPopup(`<b>Source</b><br>${data.source_ip}:${data.source_port}<br>${data.source_loc.city || 'N/A'}, ${data.source_loc.country || ''}`);
+
+        // Destination marker
+        destMarker = L.marker(destCoords).addTo(map)
+            .bindPopup(`<b>Destination</b><br>${data.dest_ip}:${data.dest_port}<br>${data.dest_loc.city || 'N/A'}, ${data.dest_loc.country || ''}`);
+    } 
+    else if (sourceHasCoords) {
+        const sourceCoords = [parseFloat(data.source_loc.lat), parseFloat(data.source_loc.lon)];
+        console.log(sourceCoords)
+        sourceMarker = L.marker(sourceCoords).addTo(map)
+            .bindPopup(`<b>Source Only</b><br>${data.source_ip}:${data.source_port}<br>${data.source_loc.city || 'N/A'}, ${data.source_loc.country || ''}`);
+    } 
+    else if (destHasCoords) {
+        const destCoords = [parseFloat(data.dest_loc.lat), parseFloat(data.dest_loc.lon)];
+        console.log(destCoords)
+        destMarker = L.marker(destCoords).addTo(map)
+            .bindPopup(`<b>Destination Only</b><br>${data.dest_ip}:${data.dest_port}<br>${data.dest_loc.city || 'N/A'}, ${data.dest_loc.country || ''}`);
+    } 
+    else {
+        console.warn("No valid coordinates for flow:", data.safe_flow_id);
+    }
+
+    // Store whatever was drawn
+    flowsOnMap.set(data.flow_id, { line, sourceMarker, destMarker });
+});
+
+
+// --- Remove Flow ---
+socket.on('remove_flow', function(data) {
+    const row = document.getElementById(`flow-${data.safe_flow_id}`);
+    if (row) row.remove();
+
+    const flowObj = flowsOnMap.get(data.flow_id);
+    if (flowObj) {
+        if (flowObj.line) map.removeLayer(flowObj.line);
+        if (flowObj.sourceMarker) map.removeLayer(flowObj.sourceMarker);
+        if (flowObj.destMarker) map.removeLayer(flowObj.destMarker);
+        flowsOnMap.delete(data.flow_id);
+    }
+});
+
+
+    // --- Alerts ---
+    socket.on('new_alert', function(data) {
+      const item = document.createElement('li');
+      item.className = 'p-3 bg-red-900 bg-opacity-50 rounded-lg';
+      item.innerHTML = `
+        <p class="font-semibold">${data.time} - ${data.message}</p>
+        <p class="text-sm text-gray-400">${data.details}</p>
+      `;
+      alertsList.prepend(item);
+    });
+
+    // --- Age Counter ---
+    setInterval(() => {
+      const now = Date.now() / 1000;
+      document.querySelectorAll('#flows-table-body tr').forEach(row => {
+        const startTime = parseFloat(row.dataset.startTime);
+        if (!isNaN(startTime)) {
+          const age = Math.round(now - startTime);
+          row.querySelector('.age-cell').textContent = age;
+        }
+      });
+    }, 1000);
+  </script>
+</body>
+</html>
